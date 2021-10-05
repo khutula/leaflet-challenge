@@ -14,15 +14,12 @@ function depthToColor(depth) {
 
 // Get GeoJSON data
 d3.json(link).then(function(data) {
-    console.log("running func 1");
     // Call function to create features for map
     createFeatures(data.features);
 });
 
 // Create features for map using data
 function createFeatures(earthquakeData) {
-
-    console.log("running func 2");
     // Create GeoJSON layer with the retrieved data
     var earthquakes = L.geoJSON(earthquakeData, {
 
@@ -50,7 +47,6 @@ function createFeatures(earthquakeData) {
 
 // Create map and layers
 function createMap(earthquakes) {
-    console.log("running func 3");
     // Create the base layers
     var street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
