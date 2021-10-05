@@ -1,6 +1,7 @@
 // Set link for GEOjson data on M4.5+ Earthquakes past 30 days
 var link = "https://earthquake.usgs.gov/fdsnws/event/1/query?format=geojson&minmagnitude=4.5";
 
+// Function to set color of marker based on earthquake depth
 function depthToColor(depth) {
     if (depth < 10) return "#65eb34";
     else if (depth < 30) return "#b4eb34";
@@ -14,15 +15,17 @@ function depthToColor(depth) {
 // Get GeoJSON data
 d3.json(link).then(function(data) {
 
+    // Call function to create features for map
     createFeatures(data.features);
 });
 
+// Create features for map using data
 function createFeatures(earthquakeData) {
 
     // Create GeoJSON layer with the retrieved data
     var earthquakes = L.geoJSON(earthquakeData, {
 
-        // Styling each feature (in this case, a neighborhood)
+        // Styling each earthquake for color (depth) and size (magnitude)
         pointToLayer: function(feature, latlng) {
             var myStyle = {
                 fillColor: depthToColor(feature.geometry.coordinates[2]),
@@ -34,16 +37,20 @@ function createFeatures(earthquakeData) {
             return L.circleMarker(latlng, myStyle);
         },
 
+        // Add toolitp with magnitude, location, and depth for each earthquake
         onEachFeature: function(feature, layer) {
-            layer.bindPopup("<h1> Magnitude " + feature.properties.mag + "</h1> <hr> <h2>" + feature.properties.place + "</h2>");
+            layer.bindPopup("<h1> Magnitude " + feature.properties.mag + "</h1> <hr> <h2>" + feature.properties.place + "</h2> <h2> Depth: " + feature.geometry.coordinates[2] + "</h2>");
         }
     });
 
+    // Call function to create map using GeoJSON layer
     createMap(earthquakes);
 }
 
+// Create map and layers
 function createMap(earthquakes) {
-    // Create the base layers.
+
+    // Create the base layers
     var street = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
     })
@@ -52,42 +59,40 @@ function createMap(earthquakes) {
         attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
     });
 
-    // Create a baseMaps object.
+    // Create baseMaps object
     var baseMaps = {
         "Street Map": street,
         "Topographic Map": topography
     };
 
-    // Create an overlays object.
+    // Create overlays object.
     var overlayMaps = {
         "Earthquake Map": earthquakes
     };
 
-    // Create a new map.
-    // Edit the code to add the earthquake data to the layers.
+    // Create map and set center, zoom, and layers
     var myMap = L.map("map", {
         center: [19, -17],
         zoom: 3,
         layers: [street, earthquakes]
     });
 
-    // Create a layer control that contains our baseMaps.
-    // Be sure to add an overlay Layer that contains the earthquake GeoJSON.
+    // Create a layer control
     L.control.layers(baseMaps, overlayMaps, {
         collapsed: false
     }).addTo(myMap);
 
+    // Create legend
     var legend = L.control({position: 'bottomright'});
 
     legend.onAdd = function(myMap) {
 
         var div = L.DomUtil.create('div', 'info legend'),
-            grades = [0, 10, 30, 50, 70, 90, 110],
-            labels = [];
-
+            grades = [0, 10, 30, 50, 70, 90, 110]
         
         div.innerHTML = "<strong>Legend: Depth</strong> <br>"
-        // loop through our density intervals and generate a label with a colored square for each interval
+
+        // loop through our depth intervals and generate a label with a colored square for each interval
         for (var i = 0; i < grades.length; i++) {
             div.innerHTML +=
                 '<i style="background:' + depthToColor(grades[i]) + '"></i> ' +
@@ -97,5 +102,6 @@ function createMap(earthquakes) {
         return div;
     };
 
+    // Add legend to map
     legend.addTo(myMap);
 }
